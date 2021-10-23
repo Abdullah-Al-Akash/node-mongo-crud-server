@@ -1,10 +1,15 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
+const cors = require('cors');
 
 const app = express();
 
 const port = 5000;
 
+
+// Midleware:
+app.use(cors())
+app.use(express.json());
 
 const uri = "mongodb+srv://Explore-MongoDB:KZS1sJComGNSL34g@cluster0.7gqmj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -18,14 +23,25 @@ async function run() {
                 const dataBase = client.db('FoodCluster');
                 const usersCollection = dataBase.collection('Users');
 
+                // GET API:
+                app.get('/users', async (req, res) => {
+                        const cursor = usersCollection.find({});
+                        const users = await cursor.toArray();
+                        res.send(users)
+                })
                 // POST API:
                 app.post('/users', async (req, res) => {
-                        console.log('Hit the Post')
-                        res.send('Hit The Post')
+
+                        const newUser = req.body;
+                        const result = await usersCollection.insertOne(newUser);
+
+                        console.log('Got New User', req.body);
+                        console.log("Added User", result);
+                        res.json(result);
                 })
         }
         finally {
-                await client.close();
+                // await client.close();
         }
 
 }
